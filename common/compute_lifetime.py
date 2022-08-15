@@ -13,7 +13,7 @@ from scipy import stats
 
 import ROOT
 ROOT.gROOT.SetBatch()
-np.random.seed(42)
+np.random.seed(1995)
 ROOT.gROOT.LoadMacro('RooCustomPdfs/RooDSCBShape.cxx++')
 from ROOT import RooDSCBShape
 
@@ -67,7 +67,7 @@ SIGNIFICANCE_SCAN = args.significance
 SYSTEMATICS = args.systematics
 DBSHAPE = args.dbshape
 
-SYSTEMATICS_COUNTS = 100
+SYSTEMATICS_COUNTS = 10000
 FIX_EFF = 0.70 if not SIGNIFICANCE_SCAN else 0
 ###############################################################################
 
@@ -98,7 +98,7 @@ file_name = efficiency_dir + f'/{FILE_PREFIX}_preseleff_cent090.root'
 # efficiency_file = ROOT.TFile(file_name, 'read')
 # EFFICIENCY = efficiency_file.Get('PreselEff').ProjectionY()
 # EFFICIENCY.SetDirectory(0)
-efficiency_file = ROOT.TFile('../2body/Macro/eff_ct_090_rew.root', 'read')
+efficiency_file = ROOT.TFile(f'{efficiency_dir}/eff_ct_090_rew.root', 'read')
 EFFICIENCY = efficiency_file.Get('eff_ct_090_rew')
 EFFICIENCY.SetDirectory(0)
 
@@ -258,13 +258,16 @@ for index, ctbin in enumerate(zip(CT_BINS[:-1], CT_BINS[1:])):
 
 
 tau_syst_array = np.zeros(SYSTEMATICS_COUNTS)
+likelihood = False
+opt_fit = 'QRMSIL+' if likelihood else 'QRMSI+'
+fit_range = [1,35]
+
 
 if SYSTEMATICS:
     # systematics histos
     lifetime_dist = ROOT.TH1D(
         'syst_lifetime', ';#tau ps ;counts', 100, 150, 350)
     lifetime_prob = ROOT.TH1D('prob_lifetime', ';prob. ;counts', 100, 0, 1)
-
     tmp_ctdist = CORRECTED_COUNTS_BEST[BKG_MODELS[0]].Clone('tmp_ctdist')
 
     combinations = set()
@@ -308,13 +311,19 @@ if SYSTEMATICS:
             ctbin = next(ct_bin_it)
 
             counts, error = get_corrected_counts(model, ctbin, eff)
-
+            print(counts, error)
             tmp_ctdist.SetBinContent(ctbin_idx, counts)
             tmp_ctdist.SetBinError(ctbin_idx, error)
 
             ctbin_idx += 1
 
-        tmp_ctdist.Fit(expo, 'QRMSI+', '', 1, 35)
+        for iBint in range(1, tmp_ctdist.GetNbinsX() + 1):
+            print('bin: ', iBint, 'content: ', tmp_ctdist.GetBinContent(iBint), 'error: ', tmp_ctdist.GetBinError(iBint))
+        
+        expo.FixParameter(0, tmp_ctdist.Integral(fit_range[0],fit_range[1], "width"))
+        expo.FixParameter(2, fit_range[0])
+        expo.FixParameter(3, fit_range[1])
+        tmp_ctdist.Fit(expo, opt_fit, '', fit_range[0], fit_range[1])
 
         # if ct fit is good use it for systematics
         if expo.GetChisquare() > 2. * expo.GetNDF():
@@ -345,9 +354,7 @@ kBlueCT = ROOT.TColor.GetColorTransparent(kBlueC, 0.5)
 kRedC = ROOT.TColor.GetColor('#e31a1c')
 kRedCT = ROOT.TColor.GetColorTransparent(kRedC, 0.5)
 
-likelihood = False
-opt_fit = 'QRMSIL+' if likelihood else 'QRMSI+'
-fit_range = [1,35]
+
 
 np.save(results_dir + f'/{FILE_PREFIX}_tau_syst_array.npy', tau_syst_array)
 
@@ -361,11 +368,6 @@ for model in BKG_MODELS:
     CORRECTED_COUNTS_BEST[model].Write()
 
     CORRECTED_COUNTS_BEST[model].UseCurrentStyle()
-
-
-
-
-
 
 
     print('Integral: ', CORRECTED_COUNTS_BEST[model].Integral(fit_range[0],fit_range[1], "width"))
