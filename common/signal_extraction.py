@@ -190,6 +190,8 @@ eff_range_it = iter(syst_eff_ranges)
 # actual analysis
 
 for ctbin in zip(CT_BINS[:-1], CT_BINS[1:]):
+    # if(ctbin[0] > 1): 
+    #     continue
     score_dict = get_effscore_dict(ctbin)
 
     # get data slice for this ct bin
@@ -280,8 +282,15 @@ for ctbin in zip(CT_BINS[:-1], CT_BINS[1:]):
             # define background parameters
             slope = ROOT.RooRealVar('slope', 'exponential slope', -100., 100.)
 
-            c0 = ROOT.RooRealVar('c0', 'constant c0', -1., 1.)
-            c1 = ROOT.RooRealVar('c1', 'constant c1', -1., 1.)
+            # c0 = ROOT.RooRealVar('c0', 'constant c0', -1000., 1000.)
+            # c1 = ROOT.RooRealVar('c1', 'constant c1', .1, 1000.)
+
+            c0 = ROOT.RooRealVar("c1", "c1", 0.5, -10., 10.)
+            c1 = ROOT.RooRealVar("c2", "c2", 0.2, -10., 10.)
+            c2 = ROOT.RooRealVar("c3", "c3", 0.2, -10., 10.)
+
+
+
 
             # define background component depending on background model required
             if model == 'pol1':
@@ -289,7 +298,7 @@ for ctbin in zip(CT_BINS[:-1], CT_BINS[1:]):
                     'bkg', 'pol1 bkg', mass, ROOT.RooArgList(c0))
 
             if model == 'pol2':
-                background = ROOT.RooPolynomial(
+                background = ROOT.RooChebychev(
                     'bkg', 'pol2 bkg', mass, ROOT.RooArgList(c0, c1))
 
             if model == 'expo':

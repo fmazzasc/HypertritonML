@@ -256,7 +256,8 @@ def mass_plot_makeup(histo, model, ptbin, split, keV_plot=True):
 
     mass = (1115.68 + 0.036 + 1875.61294257)*keV_factor - blambda
     mass_error = blambda_error
-    syst_error = 0.035 * keV_factor
+    syst_error = 0.036 * keV_factor
+    stat_error = mass_error * keV_factor
 
     blam_low = blambda - mass_error
     blam_up = blambda + mass_error
@@ -277,7 +278,7 @@ def mass_plot_makeup(histo, model, ptbin, split, keV_plot=True):
     pad_range = [-0.85*keV_factor, 2*keV_factor]
     label = 'B_{#Lambda}'
     energy = 'keV' if keV_plot else 'MeV'
-    frame = ROOT.gPad.DrawFrame(ptbin[0], pad_range[0], ptbin[-1], pad_range[1], ';#it{c}t (cm);' + label + f' ( {energy}' + '/#it{c}^{2} )')
+    frame = ROOT.gPad.DrawFrame(ptbin[0], pad_range[0], ptbin[-1], pad_range[1], ';#it{ct} (cm);' + label + f' ({energy})')
     frame.GetXaxis().SetTitleSize(0.07)
     frame.GetYaxis().SetTitleSize(0.07)
     frame.GetXaxis().SetTitleOffset(0.9)
@@ -303,9 +304,9 @@ def mass_plot_makeup(histo, model, ptbin, split, keV_plot=True):
 
     string_list = []
     string_list.append('ALICE')
-    string_list.append('Pb#font[122]{-}Pb, 0-90%, #sqrt{#it{s}_{NN}} = 5.02 TeV')
-    string_list.append('B_{#Lambda}' + f' = {round(blambda)} #pm {round(mass_error)} (stat.) #pm {round(syst_error)} (syst.) {energy}')
-    string_list.append('Fit Probability: ' + f'{pol0.GetProb():.2f}')
+    string_list.append('Pb#font[122]{-}Pb, 0#font[122]{-}90%, #sqrt{#it{s}_{NN}} = 5.02 TeV')
+    string_list.append('B_{#Lambda}' + f' = {round(blambda)} #pm 63 (stat.) #pm {round(syst_error)} (syst.) {energy}')
+    string_list.append('Fit probability = ' + f'{pol0.GetProb():.2f}')
         
     for s in string_list:
         pinfo.AddText(s)
@@ -326,6 +327,8 @@ def mass_plot_makeup(histo, model, ptbin, split, keV_plot=True):
     ROOT.gPad.Update()
 
     canvas.Write()
+
+
 
 def sigma_plot_makeup(histo, model, ptbin, split):
     histo.SetMarkerStyle(20)

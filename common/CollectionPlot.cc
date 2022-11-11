@@ -12,10 +12,10 @@
 #include <TROOT.h>
 #include <TStyle.h>
 
-constexpr double kPreliminaryTau{254};
-constexpr double kPreliminaryTauStat[2]{15, 15}; // first + then -
-constexpr double kPreliminaryTauSyst[2]{17, 17};   // first + then -
-constexpr bool kWOPrel{false};
+constexpr double kPreliminaryTau{253};
+constexpr double kPreliminaryTauStat[2]{11, 11}; // first + then -
+constexpr double kPreliminaryTauSyst[2]{6, 6};   // first + then -
+constexpr bool kWOPrel{true};
 
 void CollectionPlot()
 {
@@ -78,9 +78,9 @@ void CollectionPlot()
   // cv->SetMargin(0.340961, 0.0514874, 0.17, 0.070162);
   cv->SetMargin(0.390961, 0.0514874, 0.121294, 0.140162);
   TH2D *frame = new TH2D("frame", ";{}^{3}_{#Lambda}H lifetime (ps);", 1000, 0, 510, nMeasures, kOffset, kOffset + nMeasures);
-  std::string names[nMeasures]{"PR 136 (1964) B1803", "PRL 20 (1968) 819", "PR 180 (1969) 1307", "NPB 16 (1970) 46", "PRD 1 (1970) 66", "NPB 67 (1973) 269", "Science 328 (2010) 58", "NPA 913 (2013) 170", "PLB 754 (2016) 360", "PRC 97 (2018) 054909", "PLB 797 (2019) 134905", "arXiv:2110.09513 (2021)"};
+  std::string names[nMeasures]{"PR 136 (1964) B1803", "PRL 20 (1968) 819", "PR 180 (1969) 1307", "NPB 16 (1970) 46", "PRD 1 (1970) 66", "NPB 67 (1973) 269", "STAR, Science 328 (2010) 58", "HypHI, NPA 913 (2013) 170", "ALICE, PLB 754 (2016) 360", "STAR, PRC 97 (2018) 054909", "ALICE, PLB 797 (2019) 134905", "STAR, PRL 128 (2021) 202301"};
   if (kWOPrel == false)
-    names[nMeasures - 1] = "ALICE Preliminary Pb#minusPb 5.02 TeV";
+    names[nMeasures - 1] = "ALICE, Pb#minusPb 5.02 TeV";
 
   std::reverse(std::begin(names), std::end(names));
   for (int i{0}; i < nMeasures; ++i)

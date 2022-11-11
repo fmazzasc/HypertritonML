@@ -51,7 +51,7 @@ void signal_extraction_plot()
   pinfo_alice->SetTextFont(42);
   pinfo_alice->AddText("ALICE");
   pinfo_alice->AddText("Pb#minusPb 0#minus90%, #sqrt{#it{s}_{NN}} = 5.02 TeV");
-  pinfo_alice->AddText("2 #leq #it{c}t < 4 cm, 2 #leq #it{p}_{T} < 9 GeV/#it{c}");
+  pinfo_alice->AddText("2 #leq #it{ct} < 4 cm, 2 #leq #it{p}_{T} < 9 GeV/#it{c}");
 
 
   TCanvas *cv = new TCanvas("cv1","cv1",1500,1500);

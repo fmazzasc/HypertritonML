@@ -3,7 +3,6 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from math import floor, log10
 
-import aghast
 import numpy as np
 import pandas as pd
 import ROOT

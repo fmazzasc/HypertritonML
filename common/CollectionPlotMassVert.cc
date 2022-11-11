@@ -12,9 +12,11 @@
 #include <TROOT.h>
 #include <TStyle.h>
 
-constexpr double kAliceResult{0.049};
-constexpr double kAliceResultStat[2]{0.061, 0.061}; // first + then -
-constexpr double kAliceResultSyst[2]{0.09, 0.09}; // first + then -
+constexpr double kAliceResult{0.072};
+constexpr double kAliceResultStat[2]{0.063, 0.063}; // first + then -
+constexpr double kAliceResultSyst[2]{0.036, 0.036}; // first + then -
+constexpr bool kWOPrel{true};
+
 
 void CollectionPlotMassVert()
 {
@@ -65,7 +67,7 @@ void CollectionPlotMassVert()
     TH2D *frame = new TH2D("frame", ";B_{#Lambda} (MeV);", 1000, -0.55, 0.75, nMeasures, kOffset, kOffset + nMeasures);
     std::string names[nMeasures]{"NPB1 (1967) 105", "NPB4 (1968) 511", "PRD1 (1970) 66", "NPB52 (1973) 1", "STAR, Nat. Phys 16 (2020)"};
 
-    names[nMeasures - 1] = "ALICE Preliminary Pb#minusPb 5.02 TeV";
+    names[nMeasures - 1] = kWOPrel ? "" : "ALICE, Pb#minusPb 5.02 TeV";
 
     std::reverse(std::begin(names), std::end(names));
     for (int i{0}; i < nMeasures; ++i)
@@ -152,8 +154,11 @@ void CollectionPlotMassVert()
     gSpect->Draw("pzsame");
     gSpect2->Draw("spe2");
 
-    gSpect_alice->Draw("pzsame");
-    gSpect2_alice->Draw("spe2");
+    if (!kWOPrel)
+    {
+        gSpect_alice->Draw("pzsame");
+        gSpect2_alice->Draw("spe2");
+    }
 
     TLegend *leg2 = new TLegend(0.0514874, 0.87062, 0.949085 - 0.340961 + 0.0514874, 0.995175);
     leg2->SetFillStyle(0);

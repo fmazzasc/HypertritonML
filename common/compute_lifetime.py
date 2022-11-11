@@ -406,7 +406,7 @@ for model in BKG_MODELS:
 
     canvas.SetLogy()
 
-    frame = ROOT.gPad.DrawFrame(-0.5, 1, 35.5, 1000, ';#it{c}t (cm);d#it{N}/d(#it{c}t) [(cm)^{-1}]')
+    frame = ROOT.gPad.DrawFrame(-0.5, 1, 35.5, 1000, ';#it{ct} (cm);d#it{N}/d(#it{ct}) [(cm)^{-1}]')
 
     frame.GetXaxis().SetTitleSize(0.07)
     frame.GetYaxis().SetTitleSize(0.07)
@@ -425,9 +425,9 @@ for model in BKG_MODELS:
 
     strings = []
     strings.append('ALICE')
-    strings.append('Pb#font[122]{-}Pb, 0-90%, #sqrt{#it{s}_{NN}} = 5.02 TeV')
+    strings.append('Pb#font[122]{-}Pb, 0#font[122]{-}90%, #sqrt{#it{s}_{NN}} = 5.02 TeV')
     strings.append(f'#tau = {fit_function.GetParameter(1):.0f} #pm 11 (stat.) #pm 6 (syst.) ps')
-    strings.append(f'Fit Probability = {fit_function.GetProb():.2f}')
+    strings.append(f'Fit probability = {fit_function.GetProb():.2f}')
 
     for s in strings:
         pinfo.AddText(s)
