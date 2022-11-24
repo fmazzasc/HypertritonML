@@ -239,11 +239,11 @@ def plot_confusion_matrix(y_true, df, mode, score, normalize=False, title=None, 
     return ax
 
 
-def mass_plot_makeup(histo, model, ptbin, split, keV_plot=True):
+def mass_plot_makeup(histo, model, ctbin, lambda_mass_shift = 0., keV_plot=True,):
     blam_histo = histo.Clone()
     keV_factor = 1e3 if keV_plot else 1
     for iBin in range(1, histo.GetNbinsX() + 1):
-        blam_histo.SetBinContent(iBin, (1115.68 + 0.036 + 1875.61294257 - histo.GetBinContent(iBin)) * keV_factor)
+        blam_histo.SetBinContent(iBin, (1115.68 + lambda_mass_shift + 1875.61294257 - histo.GetBinContent(iBin)) * keV_factor)
         blam_histo.SetBinError(iBin, histo.GetBinError(iBin) * keV_factor)
 
     pol0 = ROOT.TF1('blfunction', '[0]', 0, 10)
@@ -257,7 +257,7 @@ def mass_plot_makeup(histo, model, ptbin, split, keV_plot=True):
     mass = (1115.68 + 0.036 + 1875.61294257)*keV_factor - blambda
     mass_error = blambda_error
     syst_error = 0.036 * keV_factor
-    stat_error = mass_error * keV_factor
+    stat_error = mass_error
 
     blam_low = blambda - mass_error
     blam_up = blambda + mass_error
@@ -270,7 +270,7 @@ def mass_plot_makeup(histo, model, ptbin, split, keV_plot=True):
     blam_histo.SetMarkerColor(kBlueC)
     blam_histo.SetLineColor(kBlueC)
 
-    canvas = ROOT.TCanvas(f'hyp_mass_{model}{split}')
+    canvas = ROOT.TCanvas(f'hyp_mass_{model}')
     canvas.SetTopMargin(0.052)
     canvas.SetRightMargin(0.03)
     canvas.SetLeftMargin(0.13)
@@ -278,7 +278,7 @@ def mass_plot_makeup(histo, model, ptbin, split, keV_plot=True):
     pad_range = [-0.85*keV_factor, 2*keV_factor]
     label = 'B_{#Lambda}'
     energy = 'keV' if keV_plot else 'MeV'
-    frame = ROOT.gPad.DrawFrame(ptbin[0], pad_range[0], ptbin[-1], pad_range[1], ';#it{ct} (cm);' + label + f' ({energy})')
+    frame = ROOT.gPad.DrawFrame(ctbin[0], pad_range[0], ctbin[-1], pad_range[1], ';#it{ct} (cm);' + label + f' ({energy})')
     frame.GetXaxis().SetTitleSize(0.07)
     frame.GetYaxis().SetTitleSize(0.07)
     frame.GetXaxis().SetTitleOffset(0.9)
@@ -305,7 +305,7 @@ def mass_plot_makeup(histo, model, ptbin, split, keV_plot=True):
     string_list = []
     string_list.append('ALICE')
     string_list.append('Pb#font[122]{-}Pb, 0#font[122]{-}90%, #sqrt{#it{s}_{NN}} = 5.02 TeV')
-    string_list.append('B_{#Lambda}' + f' = {round(blambda)} #pm 63 (stat.) #pm {round(syst_error)} (syst.) {energy}')
+    string_list.append('B_{#Lambda}' + f' = {round(blambda)} #pm {round(stat_error)} (stat.) #pm {round(syst_error)} (syst.) {energy}')
     string_list.append('Fit probability = ' + f'{pol0.GetProb():.2f}')
         
     for s in string_list:

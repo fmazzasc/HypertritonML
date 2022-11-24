@@ -132,8 +132,8 @@ if TRAIN:
                     score_from_eff_array = analysis_utils.score_from_efficiency_array(mc_truth, y_pred, EFF_ARRAY)
                     fixed_eff_array = np.vstack((EFF_ARRAY, score_from_eff_array))
 
-                    ml_analysis.save_ML_analysis(model_handler, fixed_eff_array, cent_class=cclass, pt_range=ptbin, ct_range=ctbin, split=split)
-                    ml_analysis.save_ML_plots(model_handler, data, [eff, tsd], cent_class=cclass, pt_range=ptbin, ct_range=ctbin, split=split)
+                    ml_analysis.save_ML_analysis(model_handler, fixed_eff_array, cent_class=cclass, pt_range=ptbin, ct_range=ctbin, split=split, prefix=FILE_PREFIX)
+                    ml_analysis.save_ML_plots(model_handler, data, [eff, tsd], cent_class=cclass, pt_range=ptbin, ct_range=ctbin, split=split, prefix=FILE_PREFIX)
 
         del ml_analysis
 
@@ -160,8 +160,8 @@ if APPLICATION:
             df_applied = pd.read_parquet(os.path.dirname(data_path) + f'/applied_df_{FILE_PREFIX}{split}.parquet.gzip', engine='fastparquet')
             df_applied_mc = pd.read_parquet(os.path.dirname(signal_path) + f'/applied_mc_df_{FILE_PREFIX}{split}.parquet.gzip', engine='fastparquet')
         else:
-            df_applied = hau.get_skimmed_data(data_path, CENT_CLASSES, PT_BINS, CT_BINS, COLUMNS, application_columns, N_BODY, split, LARGE_DATA)
-            df_applied_mc = hau.get_applied_mc(signal_path, CENT_CLASSES, PT_BINS, CT_BINS, COLUMNS, application_columns, N_BODY, split)
+            df_applied = hau.get_skimmed_data(data_path, CENT_CLASSES, PT_BINS, CT_BINS, COLUMNS, application_columns, N_BODY, split, FILE_PREFIX, LARGE_DATA)
+            df_applied_mc = hau.get_applied_mc(signal_path, CENT_CLASSES, PT_BINS, CT_BINS, COLUMNS, application_columns, N_BODY, split, FILE_PREFIX)
 
             if MAG_FIELD!="":
                 df_applied = df_applied.query(f'magField=={MAG_FIELD}')
@@ -195,7 +195,7 @@ if APPLICATION:
                         mass_bins = 70
 
                         presel_eff = ml_application.get_preselection_efficiency(ptbin_index, ctbin_index)
-                        eff_score_array, model_handler = ml_application.load_ML_analysis(cclass, ptbin, ctbin, split)
+                        eff_score_array, model_handler = ml_application.load_ML_analysis(cclass, ptbin, ctbin, split, prefix=FILE_PREFIX)
 
                         data_slice = ml_application.get_data_slice(cclass, ptbin, ctbin, application_columns)
 
@@ -205,7 +205,7 @@ if APPLICATION:
                         sigscan_results[f'ct{ctbin[0]}{ctbin[1]}pt{ptbin[0]}{ptbin[1]}'] = [sigscan_eff, sigscan_tsd]
 
             sigscan_results = np.asarray(sigscan_results)
-            filename_sigscan = results_dir + f'/Efficiencies/{FILE_PREFIX}{split}_sigscan.npy'
+            filename_sigscan = results_dir + f'/Efficiencies/{FILE_PREFIX}/sigscan{split}.npy'
             np.save(filename_sigscan, sigscan_results)
 
     print (f'--- ML application time: {((time.time() - app_time) / 60):.2f} minutes ---')

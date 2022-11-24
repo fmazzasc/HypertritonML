@@ -12,17 +12,17 @@ from hipe4ml.model_handler import ModelHandler
 from ROOT import TF1, TH1D, TH2D, TH3D, TCanvas, TPaveStats, TPaveText, gStyle
 
 
-def get_applied_mc(mc_path, cent_classes, pt_bins, ct_bins, training_columns, application_columns, mode=2, split=''):
+def get_applied_mc(mc_path, cent_classes, pt_bins, ct_bins, training_columns, application_columns, mode=2, split='', file_prefix=''):
     print('\n++++++++++++++++++++++++++++++++++++++++++++++++++')
     print ('\nStarting BDT appplication on MC data')
 
     if mode == 3:
-        handlers_path = os.environ['HYPERML_MODELS_3'] + '/handlers'
-        efficiencies_path = os.environ['HYPERML_EFFICIENCIES_3']
+        handlers_path = os.environ['HYPERML_MODELS_3'] + '/handlers' + '/' + file_prefix
+        efficiencies_path = os.environ['HYPERML_EFFICIENCIES_3'] + '/' + file_prefix
 
     if mode == 2:
-        handlers_path = os.environ['HYPERML_MODELS_2'] + '/handlers'
-        efficiencies_path = os.environ['HYPERML_EFFICIENCIES_2']
+        handlers_path = os.environ['HYPERML_MODELS_2'] + '/handlers' + '/' + file_prefix
+        efficiencies_path = os.environ['HYPERML_EFFICIENCIES_2'] + '/' + file_prefix
 
     df_signal = uproot.open(mc_path)['SignalTable'].arrays(library='pd')
     df_applied = pd.DataFrame()
@@ -55,17 +55,17 @@ def get_applied_mc(mc_path, cent_classes, pt_bins, ct_bins, training_columns, ap
     return df_applied
 
 
-def get_skimmed_data(data_path, cent_classes, pt_bins, ct_bins, training_columns, application_columns, mode=2, split='', chunks=False):
+def get_skimmed_data(data_path, cent_classes, pt_bins, ct_bins, training_columns, application_columns, mode=2, split='',  file_prefix='', chunks=False):
     print('\n++++++++++++++++++++++++++++++++++++++++++++++++++')
     print ('\nStarting BDT appplication on large data')
 
     if mode == 3:
-        handlers_path = os.environ['HYPERML_MODELS_3'] + '/handlers'
-        efficiencies_path = os.environ['HYPERML_EFFICIENCIES_3']
+        handlers_path = os.environ['HYPERML_MODELS_3'] + '/handlers' + '/' + file_prefix
+        efficiencies_path = os.environ['HYPERML_EFFICIENCIES_3'] + '/' + file_prefix
 
     if mode == 2:
-        handlers_path = os.environ['HYPERML_MODELS_2'] + '/handlers'
-        efficiencies_path = os.environ['HYPERML_EFFICIENCIES_2']
+        handlers_path = os.environ['HYPERML_MODELS_2'] + '/handlers' + '/' + file_prefix
+        efficiencies_path = os.environ['HYPERML_EFFICIENCIES_2'] + '/' + file_prefix
     
     if not data_path[-5:]==".root":
         data_iterator = [pd.read_parquet(data_path, engine='fastparquet')]

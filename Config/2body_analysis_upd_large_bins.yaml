@@ -1,12 +1,12 @@
 
 NBODY: 2
-FILE_PREFIX: '2body_analysis_new'
+FILE_PREFIX: '2body_analysis_upd_large_bins'
 
 
 CENTRALITY_CLASS:
   - [0, 90]
 # CT_BINS: [2, 4]
-CT_BINS: [1, 2, 4, 6, 8, 10, 14, 18, 23, 35]
+CT_BINS: [1, 2, 4, 7, 10, 18]
 PT_BINS: [2, 10]
 
 BKG_MODELS: ['pol2', 'pol1', 'expo']
@@ -19,7 +19,7 @@ LOAD_APPLIED_DATA: False
 MAG_FIELD: ""
 
 
-MC_PATH: $HYPERML_TABLES_2/SignalTable_new_20g7.root
+MC_PATH: $HYPERML_TABLES_2/SignalTable_upd_20g7.root
 BKG_PATH: "/data/fmazzasc/PbPb_2body/2018/DataTable_18qr_pass3_LS.root"
 DATA_PATH: "/data/fmazzasc/PbPb_2body/2018/DataTable_18qr.parquet.gzip"
 ANALYSIS_RESULTS_PATH: "/data/fmazzasc/PbPb_2body/2018/AnalysisResults_18qr.root"

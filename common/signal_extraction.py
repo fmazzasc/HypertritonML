@@ -13,15 +13,13 @@ import yaml
 import math
 
 ROOT.gROOT.LoadMacro('RooCustomPdfs/RooDSCBShape.cxx++')
-# ROOT.gInterpreter.ProcessLine('RooCustomPdfs/RooDSCBShape.h')
-
 from ROOT import RooDSCBShape
+
+
 
 kBlueC = ROOT.TColor.GetColor('#1f78b4')
 kOrangeC  = ROOT.TColor.GetColor("#ff7f00")
-
 ROOT.gROOT.SetBatch()
-
 np.random.seed(42)
 
 ###############################################################################
@@ -54,6 +52,7 @@ if args.antimatter:
 ###############################################################################
 
 # define some globals
+FILE_PREFIX_GLO = params['FILE_PREFIX']
 FILE_PREFIX = params['FILE_PREFIX'] + SPLIT
 
 
@@ -80,7 +79,7 @@ FIX_EFF = 0.70 if not SIGNIFICANCE_SCAN else 0
 # input/output files
 results_dir = os.environ['HYPERML_RESULTS_{}'.format(params['NBODY'])]
 tables_dir = os.path.dirname(DATA_PATH)
-efficiency_dir = os.environ['HYPERML_EFFICIENCIES_{}'.format(params['NBODY'])]
+efficiency_dir = os.environ['HYPERML_EFFICIENCIES_{}'.format(params['NBODY'])] + '/' + FILE_PREFIX_GLO
 
 # input data file
 file_name = tables_dir + f'/applied_df_{FILE_PREFIX}.parquet.gzip'
@@ -92,8 +91,8 @@ file_name = tables_dir + f'/applied_mc_df_{FILE_PREFIX}.parquet.gzip'
 print(file_name)
 mc_df = pd.read_parquet(file_name, engine='fastparquet')
 
-# significance scan output
-file_name = results_dir + f'/Efficiencies/{FILE_PREFIX}_sigscan.npy'
+# significance scan output: for matter and antimatter sigscan will be done together to reduce systematics
+file_name = efficiency_dir + f'/sigscan.npy'
 sigscan_dict = np.load(file_name, allow_pickle=True).item()
 
 # output file
@@ -126,6 +125,7 @@ for model in BKG_MODELS:
 
     MASS_SHIFT_H2[model] = MASS_H2[model].Clone(f'mass_shift_{model}')
     RECO_SHIFT_H2[model] = MASS_H2[model].Clone(f'reco_shift_{model}')
+    RECO_SHIFT_H2[model].SetTitle(';#it{c}t cm;BDT efficiency;  M_{gen} - M_{reco} (MeV/c^{2})')
 
 
 # useful methods
@@ -137,9 +137,9 @@ def get_eff_index(eff):
     return int(idx)
 
 
-def get_effscore_dict(ctbin):
+def get_effscore_dict(ctbin, split=''):
     info_string = f'090_210_{ctbin[0]}{ctbin[1]}'
-    file_name = efficiency_dir + f'/Eff_Score_{info_string}.npy'
+    file_name = efficiency_dir + f'/Eff_Score_{info_string}{split}.npy'
 
     return {round(e[0], 2): e[1] for e in np.load(file_name).T}
 
@@ -190,9 +190,7 @@ eff_range_it = iter(syst_eff_ranges)
 # actual analysis
 
 for ctbin in zip(CT_BINS[:-1], CT_BINS[1:]):
-    # if(ctbin[0] > 1): 
-    #     continue
-    score_dict = get_effscore_dict(ctbin)
+    score_dict = get_effscore_dict(ctbin, SPLIT)
 
     # get data slice for this ct bin
     data_slice = data_df.query('@ctbin[0]<ct<@ctbin[1] and 2.960<m<3.040')
@@ -216,6 +214,10 @@ for ctbin in zip(CT_BINS[:-1], CT_BINS[1:]):
         tsd = score_dict[eff]
         roo_data_slice = hau.ndarray2roo(np.array(data_slice.query(
             'score>@tsd')['m'].values, dtype=np.float64), mass)
+
+        h_data = roo_data_slice.createHistogram(f"histo_{eff}", mass, ROOT.RooFit.Binning(80))
+        h_data.Write()
+
 
         # mc slice for the kde
         mc_array = np.array(mc_slice.query('score>@tsd')['m'].values, dtype=np.float64)
@@ -285,11 +287,9 @@ for ctbin in zip(CT_BINS[:-1], CT_BINS[1:]):
             # c0 = ROOT.RooRealVar('c0', 'constant c0', -1000., 1000.)
             # c1 = ROOT.RooRealVar('c1', 'constant c1', .1, 1000.)
 
-            c0 = ROOT.RooRealVar("c1", "c1", 0.5, -10., 10.)
+            c0 = ROOT.RooRealVar('c0', 'constant c0', -1., 1.)
             c1 = ROOT.RooRealVar("c2", "c2", 0.2, -10., 10.)
             c2 = ROOT.RooRealVar("c3", "c3", 0.2, -10., 10.)
-
-
 
 
             # define background component depending on background model required
@@ -299,7 +299,7 @@ for ctbin in zip(CT_BINS[:-1], CT_BINS[1:]):
 
             if model == 'pol2':
                 background = ROOT.RooChebychev(
-                    'bkg', 'pol2 bkg', mass, ROOT.RooArgList(c0, c1))
+                    'bkg', 'pol2 bkg', mass, ROOT.RooArgList(c1, c2))
 
             if model == 'expo':
                 background = ROOT.RooExponential(
@@ -313,6 +313,8 @@ for ctbin in zip(CT_BINS[:-1], CT_BINS[1:]):
                 f'{model}_total_pdf', 'signal + background', ROOT.RooArgList(signal, background), ROOT.RooArgList(n))
             fit_results = fit_function.fitTo(roo_data_slice, ROOT.RooFit.Range(
                 2.960, 3.040), ROOT.RooFit.NumCPU(64), ROOT.RooFit.Save())
+
+            #covert roodataset to a TH1D
 
             frame = mass.frame(80)
             frame.SetName(f'eff{eff:.2f}_{model}')

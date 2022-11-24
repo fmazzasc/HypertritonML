@@ -86,7 +86,7 @@ class TrainingAnalysis:
         if save:
             path = os.environ['HYPERML_EFFICIENCIES_{}'.format(self.mode)]
 
-            filename = path + f'/{prefix}{split}_preseleff_cent{cent_class[0]}{cent_class[1]}.root'
+            filename = path + f'/{prefix}/preseleff_cent{cent_class[0]}{cent_class[1]}{split}.root'
             t_file = ROOT.TFile(filename, 'recreate')
             
             pres_histo.Write()
@@ -159,18 +159,20 @@ class TrainingAnalysis:
         np.save(filename_sigma, np.array(sigma_dict))
         np.save(filename_sigma_error, np.array(sigma_error_dict))
 
-    def save_ML_analysis(self, model_handler, eff_score_array, cent_class, pt_range, ct_range, split=''):
+    def save_ML_analysis(self, model_handler, eff_score_array, cent_class, pt_range, ct_range, split='', prefix=''):
         info_string = f'_{cent_class[0]}{cent_class[1]}_{pt_range[0]}{pt_range[1]}_{ct_range[0]}{ct_range[1]}{split}'
-
-        models_path = os.environ['HYPERML_MODELS_{}'.format(self.mode)]+'/models'
-        handlers_path = os.environ['HYPERML_MODELS_{}'.format(self.mode)]+'/handlers'
-        efficiencies_path = os.environ['HYPERML_EFFICIENCIES_{}'.format(self.mode)]
+        models_path = os.environ['HYPERML_MODELS_{}'.format(self.mode)]+'/models' + '/' + prefix
+        handlers_path = os.environ['HYPERML_MODELS_{}'.format(self.mode)]+'/handlers' + '/' + prefix
+        efficiencies_path = os.environ['HYPERML_EFFICIENCIES_{}'.format(self.mode)] + '/' + prefix
 
         if not os.path.exists(models_path):
             os.makedirs(models_path)
 
         if not os.path.exists(handlers_path):
             os.makedirs(handlers_path)
+        
+        if not os.path.exists(efficiencies_path):
+            os.makedirs(efficiencies_path)
 
         filename_handler = handlers_path + '/model_handler' + info_string + '.pkl'
         filename_model = models_path + '/BDT' + info_string + '.model'
@@ -183,13 +185,13 @@ class TrainingAnalysis:
 
         print('ML analysis results saved.\n')
 
-    def save_ML_plots(self, model_handler, data, eff_score_array, cent_class, pt_range, ct_range, split=''):
+    def save_ML_plots(self, model_handler, data, eff_score_array, cent_class, pt_range, ct_range, split='', prefix=''):
         fig_path = os.environ['HYPERML_FIGURES_{}'.format(self.mode)]
         info_string = f'_{cent_class[0]}{cent_class[1]}_{pt_range[0]}{pt_range[1]}_{ct_range[0]}{ct_range[1]}{split}'
 
-        bdt_score_dir = fig_path + '/TrainTest'
-        bdt_eff_dir = fig_path + '/Efficiency'
-        feat_imp_dir = fig_path + '/FeatureImp'
+        bdt_score_dir = fig_path + '/TrainTest' + '/' + prefix
+        bdt_eff_dir = fig_path + '/Efficiency' + '/' + prefix
+        feat_imp_dir = fig_path + '/FeatureImp' + '/' + prefix
 
         bdt_score_plot = plot_utils.plot_output_train_test(model_handler, data, bins=100, log=True)
         if not os.path.exists(bdt_score_dir):
@@ -248,7 +250,7 @@ class ModelApplication:
 
     def load_preselection_efficiency(self, cent_class, split, prefix=''):
         efficiencies_path = os.environ['HYPERML_EFFICIENCIES_{}'.format(self.mode)]
-        filename_efficiencies = efficiencies_path + f'/{prefix}{split}_preseleff_cent{cent_class[0]}{cent_class[1]}.root'
+        filename_efficiencies = efficiencies_path + f'/{prefix}/preseleff_cent{cent_class[0]}{cent_class[1]}{split}.root'
 
         tfile = ROOT.TFile(filename_efficiencies)
 
@@ -257,12 +259,12 @@ class ModelApplication:
 
         return self.presel_histo
 
-    def load_ML_analysis(self, cent_class, pt_range, ct_range, split=''):
+    def load_ML_analysis(self, cent_class, pt_range, ct_range, split='', prefix=''):
 
         info_string = f'_{cent_class[0]}{cent_class[1]}_{pt_range[0]}{pt_range[1]}_{ct_range[0]}{ct_range[1]}{split}'
 
-        handlers_path = os.environ['HYPERML_MODELS_{}'.format(self.mode)] + '/handlers'
-        efficiencies_path = os.environ['HYPERML_EFFICIENCIES_{}'.format(self.mode)]
+        handlers_path = os.environ['HYPERML_MODELS_{}'.format(self.mode)] + '/handlers' + '/' + prefix
+        efficiencies_path = os.environ['HYPERML_EFFICIENCIES_{}'.format(self.mode)] + '/' + prefix
 
         filename_handler = handlers_path + '/model_handler' + info_string + '.pkl'
         filename_efficiencies = efficiencies_path + '/Eff_Score' + info_string + '.npy'
@@ -277,40 +279,6 @@ class ModelApplication:
     def get_preselection_efficiency(self, ptbin_index, ctbin_index):
         return self.presel_histo.GetBinContent(ptbin_index, ctbin_index)
 
-    def apply_BDT_to_data(self, cent_classes, pt_bins, ct_bins, training_columns, application_columns):
-        print('\nApplying BDT to data: ...')
-
-        df_applied = pd.DataFrame()
-        
-        for cclass in cent_classes:
-            for ptbin in zip(pt_bins[:-1], pt_bins[1:]):
-                for ctbin in zip(ct_bins[:-1], ct_bins[1:]):
-                    info_string = '_{}{}_{}{}_{}{}'.format(cclass[0], cclass[1], ptbin[0], ptbin[1], ctbin[0], ctbin[1])
-
-                    filename_handler = handlers_path + '/model_handler' + info_string + split + '.pkl'
-                    filename_efficiencies = efficiencies_path + '/Eff_Score' + info_string + split + '.npy'
-
-                    model_handler = ModelHandler()
-                    model_handler.load_model_handler(filename_handler)
-
-                    eff_score_array = np.load(filename_efficiencies)
-                    tsd = eff_score_array[1][-1]
-
-                    data_range = f'{ctbin[0]}<ct<{ctbin[1]} and {ptbin[0]}<pt<{ptbin[1]} and {cclass[0]}<=centrality<{cclass[1]}'
-
-                    df_tmp = self.df_data.query(data_range)
-                    df_tmp.insert(0, 'score', model_handler.predict(df_tmp[training_columns]))
-
-                    df_tmp = df_tmp.query('score>@tsd')
-                    df_tmp = df_tmp.loc[:, application_columns]
-
-                    df_applied = df_applied.append(df_tmp, ignore_index=True, sort=False)
-
-                    print(df_applied.info(memory_usage='deep'))
-
-        print('Application: Done!')
-
-        return df_applied
 
     def get_data_slice(self, cent_class, pt_range, ct_range, application_columns):
         data_range = f'{ct_range[0]}<ct<{ct_range[1]} and {pt_range[0]}<pt<{pt_range[1]} and {cent_class[0]}<=centrality<{cent_class[1]}'
@@ -354,7 +322,7 @@ class ModelApplication:
                 bw, cent_class, pt_range, pre_selection_efficiency * bdt_efficiency[index],
                 self.hist_centrality, self.mode)
 
-            if split is not '':
+            if split != '':
                 exp_signal_ctint = 0.5 * exp_signal_ctint
 
             ctrange_correction = hau.expo(ct_range[0], hyp_lifetime)-hau.expo(ct_range[1], hyp_lifetime)

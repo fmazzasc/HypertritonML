@@ -78,7 +78,7 @@ tables_dir = os.path.dirname(DATA_PATH)
 efficiency_dir = os.environ['HYPERML_EFFICIENCIES_{}'.format(params['NBODY'])]
 
 # significance scan output
-file_name = results_dir + f'/Efficiencies/{FILE_PREFIX}_sigscan.npy'
+file_name = results_dir + f'/Efficiencies/{FILE_PREFIX}/sigscan{SPLIT}.npy'
 sigscan_dict = np.load(file_name, allow_pickle=True).item()
 
 

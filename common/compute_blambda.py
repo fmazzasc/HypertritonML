@@ -17,7 +17,6 @@ ROOT.gROOT.LoadMacro('RooCustomPdfs/RooDSCBShape.cxx++')
 from ROOT import RooDSCBShape
 
 ROOT.gROOT.SetBatch()
-
 np.random.seed(42)
 
 ###############################################################################
@@ -49,6 +48,7 @@ if args.antimatter:
 
 ###############################################################################
 # define some globals
+FILE_PREFIX_GLO = params['FILE_PREFIX']
 FILE_PREFIX = params['FILE_PREFIX'] + SPLIT
 
 DATA_PATH = os.path.expandvars(params['DATA_PATH'])
@@ -73,10 +73,9 @@ FIX_EFF = 0.70 if not SIGNIFICANCE_SCAN else 0
 # input/output files
 results_dir = os.environ['HYPERML_RESULTS_{}'.format(params['NBODY'])]
 tables_dir = os.path.dirname(DATA_PATH)
-efficiency_dir = os.environ['HYPERML_EFFICIENCIES_{}'.format(params['NBODY'])]
 
 # significance scan output
-file_name = results_dir + f'/Efficiencies/{FILE_PREFIX}_sigscan.npy'
+file_name = results_dir + f'/Efficiencies/{FILE_PREFIX_GLO}/sigscan{SPLIT}.npy'
 sigscan_dict = np.load(file_name, allow_pickle=True).item()
 
 
@@ -116,6 +115,14 @@ RECO_SHIFT_H2_DBSHAPE = {}
 
 
 MC_MASS = 2.99131
+lamdba_mass_shift = 0.036
+
+
+if(SPLIT=='_matter'):
+    lamdba_mass_shift = 0.036
+if(SPLIT=='_antimatter'):
+    lamdba_mass_shift = -0.036
+
 
 # prepare histograms for the analysis
 for model in BKG_MODELS:
@@ -193,7 +200,7 @@ for model in BKG_MODELS:
     else:
        MASS_BEST[model].Add(MASS_SHIFT_BEST[model])
   
-    hpu.mass_plot_makeup(MASS_BEST[model], model, CT_BINS, "")
+    hpu.mass_plot_makeup(MASS_BEST[model], model, CT_BINS, lamdba_mass_shift)
 
 
 # efficiency ranges for sampling the systematics
@@ -266,7 +273,7 @@ if SYSTEMATICS:
             ctbin_idx += 1
 
         mass, mass_error, chi2red = hau.b_form_histo(tmp_mass)
-        blambda = 1115.683 + 0.036 + 1875.61294257 - mass
+        blambda = 1115.683 + lamdba_mass_shift + 1875.61294257 - mass
 
         if chi2red < 2.:
             blambda_dist.Fill(blambda)
