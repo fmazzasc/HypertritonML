@@ -1,0 +1,10 @@
+Name: xgboost
+Version: 1.5.1
+Summary: XGBoost Python Package
+Home-page: https://github.com/dmlc/xgboost
+Author: 
+Author-email: 
+License: Apache-2.0
+Location: /home/fmazzasc/alice/sw/ubuntu2004_x86-64/Python/v3.9.12-1/lib/python3.9/site-packages
+Requires: numpy, scipy
+Required-by: hipe4ml

@@ -50,7 +50,7 @@ SIGNIFICANCE_SCAN = args.significance
 SYSTEMATICS = args.systematics
 DBSHAPE = args.dbshape
 
-SYSTEMATICS_COUNTS = 10000
+SYSTEMATICS_COUNTS = 100000
 FIX_EFF = 0.70 if not SIGNIFICANCE_SCAN else 0
 ###############################################################################
 
@@ -60,11 +60,8 @@ results_dir = os.environ['HYPERML_RESULTS_{}'.format(params['NBODY'])]
 efficiency_dir = os.environ['HYPERML_EFFICIENCIES_{}'.format(params['NBODY'])]
 
 # significance scan output
-file_name_mat = results_dir + f'/Efficiencies/{FILE_PREFIX}/sigscan_matter.npy'
-sigscan_dict_mat = np.load(file_name_mat, allow_pickle=True).item()
-
-file_name_antimat =  results_dir + f'/Efficiencies/{FILE_PREFIX}/sigscan_antimatter.npy'
-sigscan_dict_antimat = np.load(file_name_antimat, allow_pickle=True).item()
+file_name_sigsc = results_dir + f'/Efficiencies/{FILE_PREFIX}/sigscan.npy'
+sigscan_dict = np.load(file_name_sigsc, allow_pickle=True).item()
 
 
 suffix = "" if not DBSHAPE else "_dscb"
@@ -158,15 +155,16 @@ def get_th1(eff, ctbin, file):
 
 # significance-scan/fixed efficiencies switch
 # if not SIGNIFICANCE_SCAN:
-eff_best_array = np.full(len(CT_BINS) - 1, FIX_EFF)
+# eff_best_array = np.full(len(CT_BINS) - 1, FIX_EFF)
 # else:
-#     eff_best_array = [round(sigscan_dict[f'ct{ctbin[0]}{ctbin[1]}pt210'][0], 2) for ctbin in zip(CT_BINS[:-1], CT_BINS[1:])]
+eff_best_array = [round(sigscan_dict[f'ct{ctbin[0]}{ctbin[1]}pt210'][0], 2) for ctbin in zip(CT_BINS[:-1], CT_BINS[1:])]
+syst_eff_ranges = np.asarray([list(range(int(x * 100) - 10, int(x * 100) + 11)) for x in eff_best_array]) / 100
 
 cv_list = []
 
 for ctbin in zip(CT_BINS[:-1], CT_BINS[1:]):
-    eff = 0.74
-    # print("BDT eff: ", eff)
+    eff = round(sigscan_dict[f'ct{ctbin[0]}{ctbin[1]}pt210'][0], 2)
+    print("BDT eff: ", eff, "ctbin: ", ctbin)
 
     for model in BKG_MODELS:
 
@@ -186,13 +184,16 @@ for ctbin in zip(CT_BINS[:-1], CT_BINS[1:]):
         fill_histo_best(MASS_BEST_MAT[model], ctbin, mass_mat, mass_error_mat)
         MASS_BEST_MAT[model].Add(RECO_SHIFT_BEST_MAT[model])
 
-        # print(MASS_BEST_MAT.GetBinContent(1))
-        # print(MASS_BEST_ANTIMAT.GetBinContent(1))
+        print(MASS_BEST_MAT[model].GetBinContent(1))
+        print(MASS_BEST_ANTIMAT[model].GetBinContent(1))
 
 
-        diff_hist = MASS_BEST_ANTIMAT[model].Clone(f'diff_hist_{model}')
-        diff_hist.Add(MASS_BEST_MAT[model], -1)
+        diff_hist = MASS_BEST_MAT[model].Clone(f'diff_hist_{model}')
+        diff_hist.GetYaxis().SetTitle("(m_{ {}^{3}_{#Lambda}H} - m_{{}_{#bar{#Lambda}}^{3}#bar{H}})/m_{ {}^{3}_{#Lambda}H}")
+        diff_hist.Add(MASS_BEST_ANTIMAT[model], -1)
+        # diff_hist.Scale(1/2991.31)
         diff_hist.Fit('pol0', 'Q')
+        
 
 
 
@@ -203,10 +204,7 @@ for ctbin in zip(CT_BINS[:-1], CT_BINS[1:]):
 
         mass_mat = mass_mat + reco_shift_mat
         mass_antimat = mass_antimat + reco_shift_antimat
-        mass_mat = mass_mat*10**(-3)
         mass_antimat = mass_antimat*10**(-3)
-
-
         histo_mat = get_th1(eff, ctbin, signal_extr_file_mat)
         histo_antimat = get_th1(eff, ctbin, signal_extr_file_antimat)
 
@@ -238,6 +236,96 @@ for ctbin in zip(CT_BINS[:-1], CT_BINS[1:]):
         cv.Write()
 
 
+if SYSTEMATICS:
+    isWritten = False
+    # systematics histos
+    mass_dist_syst = ROOT.TH1D('syst_mass_diff', '; (m_{ {}^{3}_{#Lambda}H} - m_{{}_{#bar{#Lambda}}^{3}#bar{H}})/m_{ {}^{3}_{#Lambda}H} ;counts', 200, -0.6 *10**(-4), 1.6*10**(-4))
+    mass_dist_stat = ROOT.TH1D('stat_mass_diff', '; (m_{ {}^{3}_{#Lambda}H} - m_{{}_{#bar{#Lambda}}^{3}#bar{H}})/m_{ {}^{3}_{#Lambda}H} ;counts', 200, -0.6*10**(-4), 1.6*10**(-4))
+    tmp_mass_mat = MASS_H2_MAT[BKG_MODELS[0]].ProjectionX('tmp_mass_mat')
+    tmp_mass_antimat = MASS_H2_ANTIMAT[BKG_MODELS[0]].ProjectionX('tmp_mass_antimat')
+    combinations = set()
+
+
+    for _ in range(SYSTEMATICS_COUNTS):
+        tmp_mass_mat.Reset()
+        tmp_mass_antimat.Reset()
+
+        bkg_list = []
+        eff_list = []
+        bkg_idx_list = []
+        eff_idx_list = []
+
+        # loop over ctbins
+        for ctbin_idx in range(len(CT_BINS)-1):
+            # random bkg model
+            bkg_index = np.random.randint(0, len(BKG_MODELS))
+            bkg_idx_list.append(bkg_index)
+            bkg_list.append(BKG_MODELS[bkg_index])
+
+            # randon BDT efficiency in the defined range
+            eff = np.random.choice(syst_eff_ranges[ctbin_idx])
+            eff_list.append(eff)
+            eff_index = get_eff_index(eff)
+            eff_idx_list.append(eff_index)
+
+        # convert indexes into hash and if already sampled skip this combination
+        combo = ''.join(map(str, bkg_idx_list + eff_idx_list))
+        if combo in combinations:
+            continue
+
+        # if indexes are good measure B_{Lambda}
+        ctbin_idx = 1
+        ct_bin_it = iter(zip(CT_BINS[:-1], CT_BINS[1:]))
+
+
+        for model, eff in zip(bkg_list, eff_list):
+            ctbin = next(ct_bin_it)
+            mass_mat, mass_error_mat = get_measured_h2(MASS_H2_MAT, model, ctbin, eff)
+            mass_antimat, mass_error_antimat = get_measured_h2(MASS_H2_ANTIMAT, model, ctbin, eff)
+            reco_shift_mat, reco_shift_error_mat = get_measured_h2(RECO_SHIFT_H2_MAT, model, ctbin, eff)
+            reco_shift_antimat, reco_shift_error_antimat = get_measured_h2(RECO_SHIFT_H2_ANTIMAT, model, ctbin, eff)
+
+            mass_mat += reco_shift_mat
+            mass_error_mat = np.sqrt(mass_error_mat**2 + reco_shift_error_mat**2)
+            mass_antimat += reco_shift_antimat
+            mass_error_antimat = np.sqrt(mass_error_antimat**2 + reco_shift_error_antimat**2)
+
+
+            tmp_mass_mat.SetBinContent(ctbin_idx, mass_mat)
+            tmp_mass_mat.SetBinError(ctbin_idx, mass_error_mat)
+            tmp_mass_antimat.SetBinContent(ctbin_idx, mass_antimat)
+            tmp_mass_antimat.SetBinError(ctbin_idx, mass_error_antimat)
+
+            ctbin_idx += 1
+
+        tmp_mass_mat.Add(tmp_mass_antimat, -1)
+        tmp_mass_mat.Scale(1/2991.31)
+
+        tmp_mass_mat.Fit('pol0', 'Q')
+        fit_func = tmp_mass_mat.GetFunction('pol0')
+        mass_diff = fit_func.GetParameter(0)
+        mass_diff_error = fit_func.GetParError(0)
+
+        if fit_func.GetNDF() == 0:
+            chi2red = 100
+        else:
+            chi2red = fit_func.GetChisquare()/fit_func.GetNDF()
+
+        if chi2red < 2.:
+            if chi2red<1.5 and isWritten==False:
+                print(eff_list)
+                tmp_mass_mat.GetYaxis().SetTitle('(m_{{}^{3}_{#Lambda}H} - m_{{}_{#bar{#Lambda}}^{3}#bar{H}})/m_{{}^{3}_{#Lambda}H}')
+                tmp_mass_mat.GetXaxis().SetTitle('#it{c}t (cm)')
+
+                tmp_mass_mat.Write()
+                isWritten = True
+
+            mass_dist_syst.Fill(mass_diff)
+            mass_dist_stat.Fill(mass_diff_error)
+            combinations.add(combo)
+
+    mass_dist_syst.Write()
+    mass_dist_stat.Write()
 
 
 

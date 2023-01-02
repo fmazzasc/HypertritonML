@@ -85,6 +85,8 @@ class TrainingAnalysis:
 
         if save:
             path = os.environ['HYPERML_EFFICIENCIES_{}'.format(self.mode)]
+            if not os.path.exists(path + f'/{prefix}'):
+                os.makedirs(path + f'/{prefix}')
 
             filename = path + f'/{prefix}/preseleff_cent{cent_class[0]}{cent_class[1]}{split}.root'
             t_file = ROOT.TFile(filename, 'recreate')

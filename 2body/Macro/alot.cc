@@ -15,6 +15,9 @@
 
 using std::string;
 using std::vector;
+using namespace RooStats;
+using namespace RooFit;
+
 
 void canvas_partition(TCanvas *C, const Int_t Nx = 2, const Int_t Ny = 2, Float_t lMargin = 0.15,
                       Float_t rMargin = 0.05, Float_t bMargin = 0.15, Float_t tMargin = 0.05);
@@ -22,15 +25,17 @@ TH1F* peak_plot_makeup(string histo);
 
 void peak_plot() {
 
-  string hist12   = "0-90/pol2/ct24_pT210_cen090_eff0.71_pol2";
-  string hist24   = "0-90/pol2/ct24_pT210_cen090_eff0.79_pol2";
-  string hist46   = "0-90/pol2/ct24_pT210_cen090_eff0.79_pol2";
-  string hist68   = "0-90/pol2/ct24_pT210_cen090_eff0.78_pol2";
-  string hist810  = "0-90/pol2/ct24_pT210_cen090_eff0.81_pol2";
-  string hist1014 = "0-90/pol2/ct24_pT210_cen090_eff0.79_pol2";
-  string hist1418 = "0-90/pol2/ct24_pT210_cen090_eff0.74_pol2";
-  string hist1823 = "0-90/pol2/ct24_pT210_cen090_eff0.71_pol2";
-  string hist2335 = "0-90/pol2/ct24_pT210_cen090_eff0.61_pol2";
+
+
+  string hist12   = "ct24/eff0.76_pol1";
+  string hist24   = "ct24/eff0.76_pol1";
+  string hist46   = "ct24/eff0.76_pol1";
+  string hist68   = "ct24/eff0.76_pol1";
+  string hist810  = "ct24/eff0.76_pol1";
+  string hist1014 = "ct24/eff0.76_pol1";
+  string hist1418 = "ct24/eff0.76_pol1";
+  string hist1823 = "ct24/eff0.76_pol1";
+  string hist2335 = "ct24/eff0.76_pol1";
 
   vector<string> path_vector;
   vector<TH1F*> hist_vector;
@@ -51,67 +56,67 @@ void peak_plot() {
     hist_vector.push_back(hist);
   }
 
-  // TCanvas *c = new TCanvas("C", "canvas", 1024, 640);
-  // c->SetFillStyle(4000);
+  TCanvas *c = new TCanvas("C", "canvas", 1024, 640);
+  c->SetFillStyle(4000);
 
-  // // Number of PADS
-  // const Int_t Nx = 3;
-  // const Int_t Ny = 3;
-  // // Margins
-  // Float_t lMargin = 0.12;
-  // Float_t rMargin = 0.05;
-  // Float_t bMargin = 0.15;
-  // Float_t tMargin = 0.05;
-  // // Canvas setup
-  // canvas_partition(c, Nx, Ny, lMargin, rMargin, bMargin, tMargin);
+  // Number of PADS
+  const Int_t Nx = 3;
+  const Int_t Ny = 3;
+  // Margins
+  Float_t lMargin = 0.12;
+  Float_t rMargin = 0.05;
+  Float_t bMargin = 0.15;
+  Float_t tMargin = 0.05;
+  // Canvas setup
+  canvas_partition(c, Nx, Ny, lMargin, rMargin, bMargin, tMargin);
 
-  // TPad *pad[Nx][Ny];
+  TPad *pad[Nx][Ny];
 
-  // for (Int_t i = 0; i < Nx; i++) {
-  //   for (Int_t j = 0; j < Ny; j++) {
-  //     c->cd(0);
-  //     // Get the pads previously created.
-  //     char pname[16];
-  //     pad[i][j] = (TPad *)gROOT->FindObject(pname);
-  //     pad[i][j]->Draw();
-  //     pad[i][j]->SetFillStyle(4000);
-  //     pad[i][j]->SetFrameFillStyle(4000);
-  //     pad[i][j]->cd();
-  //     // Size factors
-  //     Float_t xFactor = pad[0][0]->GetAbsWNDC() / pad[i][j]->GetAbsWNDC();
-  //     Float_t yFactor = pad[0][0]->GetAbsHNDC() / pad[i][j]->GetAbsHNDC();
-  //     char hname[16];
-  //     TH1F *hFrame = (TH1F *)h->Clone(hname);
-  //     hFrame->Reset();
-  //     hFrame->Draw();
-  //     // y axis range
-  //     hFrame->GetYaxis()->SetRangeUser(0.0001, 1.2 * h->GetMaximum());
-  //     // Format for y axis
-  //     hFrame->GetYaxis()->SetLabelFont(43);
-  //     hFrame->GetYaxis()->SetLabelSize(16);
-  //     hFrame->GetYaxis()->SetLabelOffset(0.02);
-  //     hFrame->GetYaxis()->SetTitleFont(43);
-  //     hFrame->GetYaxis()->SetTitleSize(16);
-  //     hFrame->GetYaxis()->SetTitleOffset(5);
-  //     hFrame->GetYaxis()->CenterTitle();
-  //     hFrame->GetYaxis()->SetNdivisions(505);
-  //     // TICKS Y Axis
-  //     hFrame->GetYaxis()->SetTickLength(xFactor * 0.04 / yFactor);
-  //     // Format for x axis
-  //     hFrame->GetXaxis()->SetLabelFont(43);
-  //     hFrame->GetXaxis()->SetLabelSize(16);
-  //     hFrame->GetXaxis()->SetLabelOffset(0.02);
-  //     hFrame->GetXaxis()->SetTitleFont(43);
-  //     hFrame->GetXaxis()->SetTitleSize(16);
-  //     hFrame->GetXaxis()->SetTitleOffset(5);
-  //     hFrame->GetXaxis()->CenterTitle();
-  //     hFrame->GetXaxis()->SetNdivisions(505);
-  //     // TICKS X Axis
-  //     hFrame->GetXaxis()->SetTickLength(yFactor * 0.06 / xFactor);
-  //     h->Draw("same");
-  //   }
-  // }
-  // c->cd();
+  for (Int_t i = 0; i < Nx; i++) {
+    for (Int_t j = 0; j < Ny; j++) {
+      c->cd(0);
+      // Get the pads previously created.
+      char pname[16];
+      pad[i][j] = (TPad *)gROOT->FindObject(pname);
+      pad[i][j]->Draw();
+      pad[i][j]->SetFillStyle(4000);
+      pad[i][j]->SetFrameFillStyle(4000);
+      pad[i][j]->cd();
+      // Size factors
+      Float_t xFactor = pad[0][0]->GetAbsWNDC() / pad[i][j]->GetAbsWNDC();
+      Float_t yFactor = pad[0][0]->GetAbsHNDC() / pad[i][j]->GetAbsHNDC();
+      char hname[16];
+      TH1F *hFrame = (TH1F *)h->Clone(hname);
+      hFrame->Reset();
+      hFrame->Draw();
+      // y axis range
+      hFrame->GetYaxis()->SetRangeUser(0.0001, 1.2 * h->GetMaximum());
+      // Format for y axis
+      hFrame->GetYaxis()->SetLabelFont(43);
+      hFrame->GetYaxis()->SetLabelSize(16);
+      hFrame->GetYaxis()->SetLabelOffset(0.02);
+      hFrame->GetYaxis()->SetTitleFont(43);
+      hFrame->GetYaxis()->SetTitleSize(16);
+      hFrame->GetYaxis()->SetTitleOffset(5);
+      hFrame->GetYaxis()->CenterTitle();
+      hFrame->GetYaxis()->SetNdivisions(505);
+      // TICKS Y Axis
+      hFrame->GetYaxis()->SetTickLength(xFactor * 0.04 / yFactor);
+      // Format for x axis
+      hFrame->GetXaxis()->SetLabelFont(43);
+      hFrame->GetXaxis()->SetLabelSize(16);
+      hFrame->GetXaxis()->SetLabelOffset(0.02);
+      hFrame->GetXaxis()->SetTitleFont(43);
+      hFrame->GetXaxis()->SetTitleSize(16);
+      hFrame->GetXaxis()->SetTitleOffset(5);
+      hFrame->GetXaxis()->CenterTitle();
+      hFrame->GetXaxis()->SetNdivisions(505);
+      // TICKS X Axis
+      hFrame->GetXaxis()->SetTickLength(yFactor * 0.06 / xFactor);
+      h->Draw("same");
+    }
+  }
+  c->cd();
 }
 
 void peak_plot_makeup(string histo) {
@@ -136,16 +141,14 @@ void peak_plot_makeup(string histo) {
   TF1 *sigmaParam = new TF1("sigmaParam", "pol2", 0, 35);
   sigmaParam->SetParameters(1.544e-3, 7.015e-5, -1.965e-6);
 
-  std::string inDir  = getenv("HYPERML_RESULTS_2");
-  std::string inName = "/ct_analysis_results.root";
-  inDir.append(inName);
+  TFile fInput("../Results/2Body/2body_analysis_new_signal_extraction_dscb.root");
+  frame->remove();
+  frame->SetTitle("");
 
-  TFile fInput(inDir.data(), "READ");
+  RooPlot* frame = static_cast<RooPlot*>(fInput.Get(histo.data()));
 
-  TH1D *hInvMass = dynamic_cast<TH1D *>(fInput.Get(histo.data()));
-
-  TF1 *fOldFit = hInvMass->GetFunction("fitTpl");
-  fOldFit->Delete();
+  // TF1 *fOldFit = hInvMass->GetFunction("fitTpl");
+  // fOldFit->Delete();
 
   hInvMass->SetStats(0);
   hInvMass->SetLineColor(kBlack);

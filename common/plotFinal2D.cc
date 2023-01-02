@@ -83,9 +83,9 @@ void plotFinal2D()
   galGr->Draw("lf3");
 
 
-  float measX[1]{0.073};
+  float measX[1]{0.102};
   float measXstat[1]{0.063};
-  float measXsyst[1]{0.036};
+  float measXsyst[1]{0.067};
   float measY[1]{253. / 263.2};
   float measYstat[1]{11. / 263.2};
   float measYsyst[1]{6. / 263.2};
@@ -105,7 +105,7 @@ void plotFinal2D()
   measText.SetTextColor(kBlue);
   measText.SetTextAlign(21);
   measText.SetTextSize(0.06);
-  measText.DrawText(measX[0], 1.2, "ALICE");
+  measText.DrawText(measX[0] - 0.03, 1.2, "ALICE");
 
 
 

@@ -17,29 +17,29 @@ constexpr double kPreliminaryTauStat[2]{11, 11}; // first + then -
 constexpr double kPreliminaryTauSyst[2]{6, 6};   // first + then -
 constexpr bool kWOPrel{true};
 
-void CollectionPlot()
+void CollectionPlotNew()
 {
 
   gStyle->SetOptStat(0);
 
   constexpr float kOffset = -0.5;
   constexpr int nMeasures{13};
-  constexpr int nPublished{12};
+  constexpr int nPublished{9};
 
   const Int_t N = nPublished + 1; // number of lifetime values
-  Float_t point[N] = {13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
-  Float_t lifetau[N] = {90, 232, 285, 128, 264, 246, 182, 183, 181, 142, 242, 221, 253};
-  Float_t err_y[N] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  Float_t err_x_low[N] = {40, 34, 105, 26, 52, 41, 45, 32, 39, 21, 38, 15, 11};
-  Float_t err_x_high[N] = {220, 45, 127, 35, 84, 62, 89, 42, 54, 24, 34, 15, 11};
-  Float_t errsyst_x[N] = {0, 0, 0, 0, 0, 0, 27, 37, 33, 31, 17, 19, 6};
-  Float_t errx_sumq_h[N] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  Float_t errx_sumq_l[N] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  Float_t errsyst_y[N] = {0, 0, 0, 0, 0, 0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
+  Float_t point[N] = {9, 8, 7, 6, 5, 4, 3, 2, 1};
+  Float_t lifetau[N] = { 232, 264, 246,  183, 181, 142, 242, 221, 253};
+  Float_t err_y[N] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+  Float_t err_x_low[N] = { 34, 52, 41,  32, 39, 21, 38, 15, 11};
+  Float_t err_x_high[N] = { 45, 84, 62,  42, 54, 24, 34, 15, 11};
+  Float_t errsyst_x[N] = {0, 0, 0, 37, 33, 29, 17, 19, 6};
+  Float_t errx_sumq_h[N] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+  Float_t errx_sumq_l[N] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+  Float_t errsyst_y[N] = {0, 0, 0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
 
-  double w[N] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  double v[N] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  double s[N] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  double w[N] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+  double v[N] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+  double s[N] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
   double sum_w = 0;
   double sum_v = 0;
   double chi2 = 0;

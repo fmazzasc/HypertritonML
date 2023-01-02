@@ -298,7 +298,7 @@ for ctbin in zip(CT_BINS[:-1], CT_BINS[1:]):
                     'bkg', 'pol1 bkg', mass, ROOT.RooArgList(c0))
 
             if model == 'pol2':
-                background = ROOT.RooChebychev(
+                background = ROOT.RooPolynomial(
                     'bkg', 'pol2 bkg', mass, ROOT.RooArgList(c1, c2))
 
             if model == 'expo':
@@ -316,12 +316,12 @@ for ctbin in zip(CT_BINS[:-1], CT_BINS[1:]):
 
             #covert roodataset to a TH1D
 
-            frame = mass.frame(80)
+            frame = mass.frame(80) if ctbin[0] < 14 else mass.frame(40)
             frame.SetName(f'eff{eff:.2f}_{model}')
 
             roo_data_slice.plotOn(frame, ROOT.RooFit.Name('data'), ROOT.RooFit.MarkerSize(1.5))
             fit_function.plotOn(frame, ROOT.RooFit.Components('bkg'), ROOT.RooFit.LineStyle(9), ROOT.RooFit.LineColor(kOrangeC))
-            fit_function.plotOn(frame, ROOT.RooFit.LineColor(kBlueC))
+            fit_function.plotOn(frame, ROOT.RooFit.Name(f'{model}_total_pdf'), ROOT.RooFit.LineColor(kBlueC))
 
             signal_counts = n.getVal()*roo_data_slice.sumEntries()
             signal_counts_error = (n.getError()/n.getVal())*n.getVal()*roo_data_slice.sumEntries()
@@ -343,20 +343,36 @@ for ctbin in zip(CT_BINS[:-1], CT_BINS[1:]):
                 fill_reco_shift(model, ctbin, eff, reco_shift *1e3, reco_shift_err*1e3)
 
 
+
+            # dh = roo_data_slice.binnedClone()
             # compute chi2
-            chi2 = frame.chiSquare(
-                'model', 'data', fit_results.floatParsFinal().getSize())
+            frame2 = mass.frame(30)
+            roo_data_slice.plotOn(frame2, ROOT.RooFit.Name('data'), ROOT.RooFit.MarkerSize(1.5))
+            fit_function.plotOn(frame2, ROOT.RooFit.Components('bkg'), ROOT.RooFit.LineStyle(9), ROOT.RooFit.LineColor(kOrangeC))
+            fit_function.plotOn(frame2, ROOT.RooFit.Name(f'{model}_total_pdf'), ROOT.RooFit.LineColor(kBlueC))
+            n_fit_params = fit_results.floatParsFinal().getSize()
+            chi2 = frame2.chiSquare(f'{model}_total_pdf', 'data', n_fit_params)
+            # chi2 = fit_function.chi2FitTo(dh)
+            print(f'chi2 = {chi2:.2f}')
+            fit_probability = ROOT.TMath.Prob(chi2*(frame.GetNbinsX() - n_fit_params), frame.GetNbinsX() - n_fit_params)
+            print('NFit params: ', n_fit_params)
+            print('Fit probability: ', fit_probability)
+            high_signif = significance > 10
             # add info to plot
-            pinfo = ROOT.TPaveText(0.737, 0.674, 0.937, 0.875, 'NDC')
+            pinfo = ROOT.TPaveText(0.6, 0.6, 0.93, 0.95, 'NDC')
             pinfo.SetBorderSize(0)
             pinfo.SetFillStyle(0)
             pinfo.SetTextAlign(30+3)
             pinfo.SetTextFont(42)
             string_list = []
-            string_list.append('#chi^{2} / NDF ' + f'{chi2:.2f}')
-            string_list.append(f'S (3 #sigma) {signal_counts:.1f} #pm {signal_counts_error:.1f}')
-            string_list.append(f'Significance (3 #sigma) {significance:.1f} #pm {significance_error:.1f}')
-            string_list.append('m_{ {}^{3}_{#Lambda}H} = ' + f'{m:.3f} #pm {m_error:.3f}')
+            string_list.append(f'{ctbin[0]} ' + '#leq #it{ct} < '  + f'{ctbin[1]} cm')
+            string_list.append('#chi^{2} / NDF = ' + f'{chi2:.2f}')
+            string_list.append(f'S (3 #sigma) = {signal_counts:.0f} #pm {signal_counts_error:.0f}')
+            if high_signif:
+                string_list.append('S/#sqrt{S+B}' + f' (3 #sigma) = {significance:.0f} #pm {significance_error:.0f}')
+            else:
+                string_list.append('S/#sqrt{S+B}' + f' (3 #sigma) = {significance:.1f} #pm {significance_error:.1f}')
+            string_list.append('m_{ {}^{3}_{#Lambda}H} = ' + f'{m:.1f} #pm {m_error:.1f}' + ' MeV/#it{c}^{2}')
             for s in string_list:
                 pinfo.AddText(s)
             frame.addObject(pinfo)

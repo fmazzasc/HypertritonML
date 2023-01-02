@@ -12,10 +12,10 @@
 #include <TROOT.h>
 #include <TStyle.h>
 
-constexpr double kAliceResult{0.072};
+constexpr double kAliceResult{0.102};
 constexpr double kAliceResultStat[2]{0.063, 0.063}; // first + then -
-constexpr double kAliceResultSyst[2]{0.036, 0.036}; // first + then -
-constexpr bool kWOPrel{true};
+constexpr double kAliceResultSyst[2]{0.067, 0.067}; // first + then -
+constexpr bool kWOPrel{false};
 
 
 void CollectionPlotMassVert()
@@ -25,21 +25,21 @@ void CollectionPlotMassVert()
     gStyle->SetOptStat(0);
 
     constexpr float kOffset = -0.5;
-    constexpr int nMeasures{6};
-    constexpr int nPublished{5};
+    constexpr int nMeasures{9};
+    constexpr int nPublished{8};
 
     const Int_t N = nPublished; // number of blam values
-    Float_t point[N] = {1, 2, 3, 4, 5};
-    Float_t bind[N] = {0.41, 0.08, -0.24, 0.27, 0.4};
-    Float_t err_y[N] = {0, 0, 0, 0, 0};
-    Float_t err_x_low[N] = {0.12, 0.07, 0.22, 0.08, 0.12};
-    Float_t err_x_high[N] = {0.12, 0.07, 0.22, 0.08, 0.12};
-    Float_t errsyst_x[N] = {0.11, 0., 0., 0., 0.};
-    Float_t errsyst_y[N] = {0.11, 0, 0, 0, 0.};
+    Float_t point[N] = {1, 2, 3, 4, 5, 6, 7, 8};
+    Float_t bind[N] = {0.41, 0.150, 0.250, 0.010, 0.2, 0.320, 0.160, 0.040};
+    Float_t err_y[N] = {0, 0, 0, 0, 0, 0, 0, 0};
+    Float_t err_x_low[N] = {0.12, 0.08, 0.310, 0.070, 0.120, 0.17, 0.180, 0.170};
+    Float_t err_x_high[N] = {0.12, 0.08, 0.310, 0.070, 0.120, 0.17, 0.180, 0.170};
+    Float_t errsyst_x[N] = {0.11, 0., 0., 0., 0., 0., 0., 0.};
+    Float_t errsyst_y[N] = {0.11, 0, 0, 0, 0., 0., 0., 0.};
 
-    double w[N] = {0, 0, 0, 0, 0};
-    double v[N] = {0, 0, 0, 0, 0};
-    double s[N] = {0, 0, 0, 0, 0};
+    double w[N] = {0, 0, 0, 0, 0, 0, 0, 0};
+    double v[N] = {0, 0, 0, 0, 0, 0, 0, 0};
+    double s[N] = {0, 0, 0, 0, 0, 0, 0, 0};
     double sum_w = 0;
     double sum_v = 0;
     double chi2 = 0;
@@ -61,11 +61,12 @@ void CollectionPlotMassVert()
     // cout << "Chi2 : " << chi2 << endl;
     // cout << "Chi2/(N-1) : " << chi2/(N-1) << endl;
 
+
     TCanvas *cv = new TCanvas("cv", "blam collection", 800, 800);
     // cv->SetMargin(0.340961, 0.0514874, 0.17, 0.070162);
     cv->SetMargin(0.0514874, 0.390961, 0.121294, 0.140162);
     TH2D *frame = new TH2D("frame", ";B_{#Lambda} (MeV);", 1000, -0.55, 0.75, nMeasures, kOffset, kOffset + nMeasures);
-    std::string names[nMeasures]{"NPB1 (1967) 105", "NPB4 (1968) 511", "PRD1 (1970) 66", "NPB52 (1973) 1", "STAR, Nat. Phys 16 (2020)"};
+    std::string names[nMeasures]{"Nuo. Cim. 21 (1961) 235", "Nuo. Cim. 26 (1962) 840", "Nuo. Cim. A 43 (1966) 180", "NPB1 (1967) 105", "NPB4 (1968) 511", "PRD1 (1970) 66", "NPB52 (1973) 1", "STAR, Nat. Phys 16 (2020)"};
 
     names[nMeasures - 1] = kWOPrel ? "" : "ALICE, Pb#minusPb 5.02 TeV";
 
@@ -93,6 +94,8 @@ void CollectionPlotMassVert()
     Float_t err_x_high_a[1] = {kAliceResultStat[1]};
     Float_t errsyst_x_a[1] = {kAliceResultSyst[0]};
     Float_t errsyst_y_a[1] = {0.1};
+
+    std::cout << "Alice result: " << kAliceResult << " +- " << kAliceResultStat[0] << " +- " << kAliceResultStat[1] << " +- " << kAliceResultSyst[0] << " +- " << kAliceResultSyst[1] << std::endl;
     TGraphAsymmErrors *gSpect_alice = new TGraphAsymmErrors(1, blam_a, point_a, err_x_low_a, err_x_high_a, err_y_a, err_y_a);
     TGraphAsymmErrors *gSpect2_alice = new TGraphAsymmErrors(1, blam_a, point_a, errsyst_x_a, errsyst_x_a, errsyst_y_a, errsyst_y_a);
 
@@ -178,4 +181,8 @@ void CollectionPlotMassVert()
     cv->SaveAs("../Results/2Body/CollectionMass.eps");
     cv->SaveAs("../Results/2Body/CollectionMass.pdf");
     cv->SaveAs("../Results/2Body/CollectionMass.png");
+
+    auto outfile = new TFile("../Results/2Body/CollectionMass.root", "RECREATE");
+    cv->Write();
+    outfile->Close();
 }

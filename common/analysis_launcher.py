@@ -2,12 +2,12 @@ import os
 
 
 # RUN ANALYSIS W/ MATTER + ANTIMATTER 
-os.system("python3 run_analysis.py ../Config/2body_analysis_upd_large_bins.yaml -t -a -s")
-os.system('python3 signal_extraction.py ../Config/2body_analysis_upd_large_bins.yaml -dbshape -s')
-os.system('python3 signal_extraction.py ../Config/2body_analysis_upd_large_bins.yaml -s')
-os.system('python3 compute_blambda.py ../Config/2body_analysis_upd_large_bins.yaml -dbshape -s -syst')
-os.system('python3 compute_blambda.py ../Config/2body_analysis_upd_large_bins.yaml -s -syst')
-os.system('python3 compute_lifetime.py ../Config/2body_analysis_upd_large_bins.yaml -syst -s')
+# os.system("python3 run_analysis.py ../Config/2body_analysis_noopt.yaml -t -a -s")
+# os.system('python3 signal_extraction.py ../Config/2body_analysis_noopt.yaml -s')
+os.system('python3 signal_extraction.py ../Config/2body_analysis_noopt.yaml -s -dbshape')
+os.system('python3 compute_blambda.py ../Config/2body_analysis_noopt.yaml -dbshape -s -syst')
+os.system('python3 compute_blambda.py ../Config/2body_analysis_noopt.yaml -s -syst')
+os.system('python3 compute_lifetime.py ../Config/2body_analysis_noopt.yaml -dbshape -syst -s')
 
 # RUN ANALYSIS W/ SPLITTED MATTER AND ANTIMATTER  
 # os.system("python3 run_analysis.py ../Config/2body_analysis_upd_large_bins.yaml -t -a -s --antimatter")

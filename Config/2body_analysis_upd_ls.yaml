@@ -1,6 +1,6 @@
 
 NBODY: 2
-FILE_PREFIX: '2body_analysis_upd'
+FILE_PREFIX: '2body_analysis_upd_LS'
 
 
 CENTRALITY_CLASS:
@@ -21,7 +21,7 @@ MAG_FIELD: ""
 
 MC_PATH: $HYPERML_TABLES_2/SignalTable_upd_20g7.root
 BKG_PATH: "/data/fmazzasc/PbPb_2body/2018/DataTable_18qr_pass3_LS.root"
-DATA_PATH: "/data/fmazzasc/PbPb_2body/2018/DataTable_18qr_rad.parquet.gzip"
+DATA_PATH: "/data/fmazzasc/PbPb_2body/2018/DataTable_18qr_pass3_LS.root"
 ANALYSIS_RESULTS_PATH: "/data/fmazzasc/PbPb_2body/2018/AnalysisResults_18qr.root"
 
 
